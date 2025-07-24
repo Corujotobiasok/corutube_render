@@ -4,3 +4,4 @@ torchaudio
 demucs
 yt-dlp
 numpy
+gunicorn
