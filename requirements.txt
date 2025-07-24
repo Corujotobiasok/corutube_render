@@ -1,0 +1,6 @@
+Flask
+werkzeug
+torchaudio
+demucs
+yt-dlp
+numpy

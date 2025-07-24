@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>corutube</title>
+  <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121721;
+      color: white;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .titlebar {
+      height: 38px;
+      background-color: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      -webkit-app-region: drag;
+    }
+
+    .titlebar .window-controls {
+      display: flex;
+      gap: 5px;
+      -webkit-app-region: no-drag;
+    }
+
+    .titlebar .btn {
+      padding: 0 8px;
+      font-size: 0.75rem;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+
+    .titlebar .btn svg { width: 14px; height: 14px; }
+
+    .titlebar .btn-close {
+      background-color: #dc3545 !important; 
+    }
+
+    .app-container {
+      display: flex;
+      height: calc(100vh - 38px);
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+      padding: 1rem;
+      border-right: 1px solid #2d3748;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .sidebar-header img {
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+    }
+
+    .sidebar h6 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #94a3b8;
+      padding-left: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .sidebar ul { list-style: none; padding-left: 0; }
+
+    .sidebar ul li a {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: all 0.2s ease-in-out;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .sidebar ul li a:hover,
+    .sidebar ul li a.active {
+      background-color: #374151;
+      color: white;
+    }
+
+    .sidebar svg { margin-right: 12px; }
+
+    .sidebar-footer {
+      padding-top: 1rem;
+      border-top: 1px solid #2d3748;
+    }
+
+    .btn-premium {
+      width: 100%;
+      background-color: #facc15;
+      color: #1f2937;
+      font-weight: bold;
+      border: none;
+      padding: 0.5rem 0;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-premium:hover {
+      background-color: #eab308;
+      transform: translateY(-2px);
+    }
+
+    .btn-premium.premium-active {
+      background-color: #10b981;
+      color: white;
+    }
+
+    main {
+      flex-grow: 1;
+      background-color: #1e1e2e;
+      padding: 2rem;
+      overflow-y: auto;
+      height: 100%;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .feature-list li {
+      margin-bottom: 0.5rem;
+      padding-left: 1.2rem;
+      position: relative;
+    }
+
+    .feature-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #facc15;
+    }
+
+    main::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    main::-webkit-scrollbar-thumb {
+      background-color: #374151;
+      border-radius: 6px;
+    }
+
+    main::-webkit-scrollbar-track {
+      background-color: #1e1e2e;
+    }
+
+    .sidebar ul li {
+      margin-bottom: 6px;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background-color: #1f2937;
+      border-radius: 0.5rem;
+      width: 100%;
+      max-width: 400px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      transform: translateY(20px);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header h3 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-header p {
+      color: #94a3b8;
+    }
+
+    .modal-body {
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group {
+      margin-bottom: 1rem;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #cbd5e1;
+      font-size: 0.875rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #374151;
+      border: 1px solid #4b5563;
+      border-radius: 0.375rem;
+      color: white;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+      border-color: #facc15;
+    }
+
+    .modal-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .btn-modal {
+      padding: 0.75rem;
+      border-radius: 0.375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      outline: none;
+    }
+
+    .btn-primary {
+      background-color: #facc15;
+      color: #1f2937;
+    }
+
+    .btn-primary:hover {
+      background-color: #eab308;
+    }
+
+    .btn-secondary {
+      background-color: #374151;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #4b5563;
+    }
+
+    .get-code-link {
+      color: #facc15;
+      text-align: center;
+      display: block;
+      margin-top: 1rem;
+      text-decoration: none;
+      font-size: 0.875rem;
+    }
+
+    .get-code-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Premium badge */
+    .premium-badge {
+      background-color: #facc15;
+      color: #1f2937;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      margin-left: 0.5rem;
+      display: inline-block;
+    }
+
+    /* Locked features */
+    .locked-feature {
+      position: relative;
+      opacity: 0.6;
+    }
+
+    .locked-feature::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(30, 30, 46, 0.7);
+      border-radius: 0.5rem;
+      z-index: 1;
+    }
+
+    .locked-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      color: #facc15;
+      font-size: 1.5rem;
+    }
+
+    .limit-info {
+      background-color: #374151;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      border-left: 4px solid #facc15;
+    }
+
+    .limit-info p {
+      margin-bottom: 0;
+    }
+
+    /* Premium styles */
+    body.premium {
+      background-color: #0f172a;
+    }
+
+    body.premium .sidebar {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    }
+
+    body.premium main {
+      background-color: #1a2035;
+    }
+  </style>
+</head>
+<body class="{{ 'premium' if premium else '' }}">
+  <div class="titlebar">
+    <div></div>
+    <div></div>
+    <div class="window-controls">
+      <button class="btn" onclick="window.electronAPI?.minimize()" title="Minimizar"><i data-feather="minus"></i></button>
+      <button class="btn" onclick="window.electronAPI?.maximize()" title="Maximizar"><i data-feather="maximize-2"></i></button>
+      <button class="btn btn-close" onclick="window.electronAPI?.close()" title="Cerrar"><i data-feather="x"></i></button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <nav class="sidebar">
+      <div>
+        <div class="sidebar-header">
+          <img style="margin-top: 2px;" src="../static/Assets/icono.png" alt="Logo" />
+          <h4 class="mb-0" style="margin-top: 0px;">CORUTUBE 
+            {% if premium %}<span class="premium-badge">PREMIUM</span>{% endif %}
+          </h4>
+        </div>
+        <ul class="mb-4">
+          <li><a href="#" class="group active" data-tab="inicio"><i data-feather="home"></i>Dashboard</a></li>
+        </ul>
+        <h6>Herramientas para DJs</h6>
+        <ul>
+          <li><a href="#" class="group" data-tab="convertidor"><i data-feather="video"></i>Convertidor de Youtube</a></li>
+          <li><a href="#" class="group" data-tab="descargas"><i data-feather="download"></i>Descargador de Youtube Música</a></li>
+          <li><a href="#" class="group" data-tab="acapellas"><i data-feather="mic"></i>Acapellas & Instrumentales</a></li>
+        </ul>
+      </div>
+      <div class="sidebar-footer">
+        <button class="btn-premium {% if premium %}premium-active{% endif %}" id="btn-premium">
+          {% if premium %}⭐ Versión Premium Activada{% else %}⭐ Cambiar a Premium{% endif %}
+        </button>
+      </div>
+    </nav>
+
+    <main>
+      <section id="inicio" class="tab-content active">
+        <h1 class="text-white text-3xl font-bold mb-3">Bienvenido a CORUTUBE vs:0.1</h1>
+        <p class="text-gray-400 mb-4">CORUTUBE es la plataforma definitiva para DJs...</p>
+        
+        {% if not premium %}
+        <div class="bg-yellow-900/20 border border-yellow-800 rounded-lg p-4 mb-6">
+          <h3 class="text-yellow-400 font-bold mb-2 flex items-center">
+            <i data-feather="alert-triangle" class="mr-2"></i> Versión Gratuita
+          </h3>
+          <p class="text-yellow-200 text-sm">
+            Estás utilizando la versión gratuita con limitaciones. Actualiza a Premium para desbloquear todas las funciones.
+          </p>
+        </div>
+        {% else %}
+        <div class="bg-green-900/20 border border-green-800 rounded-lg p-4 mb-6">
+          <h3 class="text-green-400 font-bold mb-2 flex items-center">
+            <i data-feather="zap" class="mr-2"></i> Versión Premium Activada
+          </h3>
+          <p class="text-green-200 text-sm">
+            ¡Disfruta de todas las funciones sin limitaciones!
+          </p>
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- Convertidor de Canciones -->
+      <section id="convertidor" class="tab-content p-6">
+        <h1 class="text-white text-2xl font-bold mb-4">Convertidor de YouTube</h1>
+        <p class="text-gray-400 mb-4">Pega la URL de una canción individual de YouTube:</p>
+        <form method="POST" action="/single_download" class="space-y-4">
+          <div>
+            <label for="youtube_url" class="block mb-2 text-sm font-medium text-gray-300">URL de la canción</label>
+            <input type="text" id="youtube_url" name="youtube_url" placeholder="https://www.youtube.com/watch?v=..."
+              class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required>
+          </div>
+          <button type="submit" style="margin-top: 16px;"
+            class="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition">
+            Descargar Canción  <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Descargador de Playlists -->
+      <section id="descargas" class="tab-content p-6 mt-6">
+        <h1 class="text-white text-2xl font-bold mb-4">Descargador de Playlists</h1>
+        
+        {% if not premium %}
+        <div class="limit-info">
+          <p><i class="feather icon-alert-circle mr-1"></i> <strong>Límite versión gratuita:</strong> 1 playlist por día (máx. 10 canciones)</p>
+        </div>
+        {% endif %}
+        
+        <p class="text-gray-400 mb-4">Pega la URL de una playlist de YouTube Music:</p>
+        <form method="POST" action="/playlist_download" class="space-y-4">
+          <div>
+            <label for="playlist_url" class="block mb-2 text-sm font-medium text-gray-300">URL de la playlist</label>
+            <input type="text" id="playlist_url" name="playlist_url" placeholder="https://music.youtube.com/playlist?list=..."
+              class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+              required>
+          </div>
+          <button type="submit" style="margin-top: 16px;"
+            class="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition">
+            Descargar Playlist <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Separador de Acapellas -->
+      <section id="acapellas" class="tab-content p-6 mt-6">
+        <h1 class="text-white text-2xl font-bold mb-4">Separador de Acapellas</h1>
+        
+        {% if not premium %}
+        <div class="limit-info">
+          <p><i class="feather icon-alert-circle mr-1"></i> <strong>Límite versión gratuita:</strong> 3 separaciones por día (solo voces)</p>
+        </div>
+        {% endif %}
+        
+        <form method="POST" action="/subir_y_separar" enctype="multipart/form-data" class="space-y-4">
+          <div>
+            <label for="archivo" class="block mb-2 text-sm font-medium text-gray-300">Selecciona un archivo MP3</label>
+            <input type="file" id="archivo" name="archivo" accept=".mp3"
+              class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              required>
+          </div>
+
+          <div style="margin-top: 16px;">
+            <p class="text-sm font-medium text-gray-300 mb-2">¿Qué querés extraer?</p>
+            <div class="text-white space-y-2">
+              <div class="form-check">
+                <input class="form-check-input bg-secondary border-0" type="checkbox" name="stems" value="vocals" id="vocals" checked>
+                <label class="form-check-label text-light" for="vocals">
+                  🎤 Voces
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input bg-secondary border-0" type="checkbox" name="stems" value="other" id="melodia" {% if not premium %}disabled{% endif %}>
+                <label class="form-check-label text-light {% if not premium %}text-gray-500{% endif %}" for="melodia">
+                  🎹 Melodía {% if not premium %}<small class="text-yellow-500">(Premium)</small>{% endif %}
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input bg-secondary border-0" type="checkbox" name="stems" value="drums" id="drums" {% if not premium %}disabled{% endif %}>
+                <label class="form-check-label text-light {% if not premium %}text-gray-500{% endif %}" for="drums">
+                  🥁 Drums {% if not premium %}<small class="text-yellow-500">(Premium)</small>{% endif %}
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input bg-secondary border-0" type="checkbox" name="stems" value="bass" id="bass" {% if not premium %}disabled{% endif %}>
+                <label class="form-check-label text-light {% if not premium %}text-gray-500{% endif %}" for="bass">
+                  🎸 Bajos {% if not premium %}<small class="text-yellow-500">(Premium)</small>{% endif %}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" style="margin-top: 16px;"
+            class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md transition">
+            Subir y Separar <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+<!-- Modal de activación premium - Versión alineada a la izquierda -->
+<div class="modal-overlay" id="premium-modal">
+  <div class="modal-content bg-gray-800 border border-gray-700 rounded-xl">
+    <div class="modal-header p-6 border-b border-gray-700">
+      <div class="flex justify-center mb-4">
+        <div class="bg-yellow-900/20 p-3 rounded-full">
+          <svg class="w-8 h-8 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text-left">
+        <h3 class="text-xl font-bold text-white">Activar Versión Premium</h3>
+        <p class="text-gray-400 mt-2 text-sm">Ingresa tu código para desbloquear todas las funciones exclusivas</p>
+      </div>
+    </div>
+
+    <div class="modal-body p-6">
+      <div class="mb-4">
+        <label for="activation-code" class="block text-sm font-medium text-gray-300 mb-2">CÓDIGO DE ACTIVACIÓN</label>
+        <input type="text" id="activation-code" placeholder="XXX-XXX-XXX" 
+               class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+      </div>
+    </div>
+
+    <div class="modal-footer p-6 pt-0 flex flex-col gap-3">
+      <button id="activate-btn" class="w-full py-3 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white font-semibold rounded-lg transition-all duration-200 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50">
+        ACTIVAR PREMIUM
+      </button>
+      <button id="close-modal" class="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+        CANCELAR
+      </button>
+      <a href="#" class="text-center text-sm text-yellow-400 hover:text-yellow-300 hover:underline transition-colors duration-200 mt-2">
+        ¿No tienes un código? Obtén uno aquí
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal-content {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 20px;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-overlay.active .modal-content {
+    transform: translateY(0);
+  }
+</style>
+
+
+  <script>
+    feather.replace();
+    const links = document.querySelectorAll('.sidebar a');
+    const tabs = document.querySelectorAll('.tab-content');
+    links.forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        document.getElementById(link.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Premium modal logic
+    const premiumModal = document.getElementById('premium-modal');
+    const btnPremium = document.getElementById('btn-premium');
+    const closeModal = document.getElementById('close-modal');
+    const activateBtn = document.getElementById('activate-btn');
+    const activationCode = document.getElementById('activation-code');
+
+    btnPremium.addEventListener('click', () => {
+      // Check if already premium
+      if (btnPremium.classList.contains('premium-active')) {
+        return;
+      }
+      premiumModal.classList.add('active');
+    });
+
+    closeModal.addEventListener('click', () => {
+      premiumModal.classList.remove('active');
+    });
+
+    activateBtn.addEventListener('click', async () => {
+      const code = activationCode.value.trim();
+      if (!code) {
+        alert('Por favor ingresa un código de activación');
+        return;
+      }
+
+      // Show loading
+      activateBtn.innerHTML = 'Verificando... <i data-feather="loader" class="animate-spin ml-2"></i>';
+      feather.replace();
+
+      try {
+        const response = await fetch('/activate_premium', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `code=${encodeURIComponent(code)}`
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert(data.message);
+          window.location.reload();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        alert('Error al conectar con el servidor');
+      } finally {
+        activateBtn.innerHTML = 'Activar Premium';
+      }
+    });
+
+    // Close modal when clicking outside
+    premiumModal.addEventListener('click', (e) => {
+      if (e.target === premiumModal) {
+        premiumModal.classList.remove('active');
+      }
+    });
+
+    // Form submission handlers
+    document.querySelectorAll("form").forEach(form => {
+      form.addEventListener("submit", function () {
+        const button = form.querySelector("button[type='submit']");
+        const spinner = form.querySelector(".spinner-border");
+
+        if (button && spinner) {
+          button.disabled = true;
+          spinner.classList.remove("d-none");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
